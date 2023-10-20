@@ -1,0 +1,71 @@
+SELECT last_name || ' ' || salary AS wynagrodzenie
+FROM employees
+WHERE department_id IN (20, 50) 
+AND salary BETWEEN 2000 AND 7000
+ORDER BY last_name;
+
+SELECT hire_date, last_name, &nazwa_kolumny
+FROM employees
+WHERE manager_id IN (SELECT employee_id FROM employees WHERE EXTRACT(YEAR FROM hire_date) = 2005)
+ORDER BY &nazwa_kolumny;
+
+SELECT first_name || ' ' || last_name AS full_name, salary, phone_number
+FROM employees
+WHERE SUBSTR(last_name,3,1) = 'e' AND first_name LIKE '&podane_imie%'
+ORDER BY 1 DESC, 2;
+
+SELECT first_name, last_name, 
+       ROUND(MONTHS_BETWEEN(SYSDATE, hire_date)) AS liczba_miesiecy_przepracowanych,
+       CASE 
+           WHEN ROUND(MONTHS_BETWEEN(SYSDATE, hire_date)) <= 150 THEN '10% wynagrodzenia' 
+           WHEN ROUND(MONTHS_BETWEEN(SYSDATE, hire_date)) <= 200 THEN '20% wynagrodzenia'
+           ELSE '30% wynagrodzenia'
+       END AS wysokosc_dodatku
+FROM employees
+ORDER BY liczba_miesiecy_przepracowanych;
+
+SELECT department_id,
+       SUM(salary) AS suma_zarobkow,
+       ROUND(AVG(salary)) AS srednia_zarobkow
+FROM employees
+GROUP BY department_id
+HAVING MIN(salary) > 5000;
+
+SELECT e.last_name, e.department_id, d.department_name, e.job_id
+FROM employees e
+JOIN departments d ON e.department_id = d.department_id
+WHERE d.location_id IN (SELECT location_id FROM locations WHERE city = 'Toronto');
+
+SELECT e.first_name, e.last_name, 
+       e2.first_name AS wspolpracownik_imie, 
+       e2.last_name AS wspolpracownik_nazwisko
+FROM employees e
+JOIN employees e2 ON e.employee_id != e2.employee_id
+WHERE e.first_name = 'Jennifer'
+AND e.department_id = e2.department_id;
+
+SELECT department_id, department_name
+FROM departments
+WHERE department_id NOT IN (SELECT DISTINCT department_id FROM employees);
+
+CREATE TABLE Job_grades AS 
+SELECT * FROM HR.Job_grades;
+
+SELECT e.first_name, e.last_name, e.job_id, d.department_name, e.salary, jg.grade
+FROM employees e
+JOIN departments d ON e.department_id = d.department_id
+JOIN job_grades jg ON e.salary BETWEEN jg.min_salary AND jg.max_salary;
+
+SELECT first_name, last_name, salary
+FROM employees
+WHERE salary > (SELECT AVG(salary) FROM employees)
+ORDER BY salary DESC;
+
+SELECT e.employee_id, e.first_name, e.last_name
+FROM employees e
+WHERE e.department_id IN (
+    SELECT DISTINCT department_id
+    FROM employees
+    WHERE last_name LIKE '%u%'
+);
+
