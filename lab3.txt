@@ -1,0 +1,95 @@
+DECLARE
+    numer_max departments.department_id%TYPE;
+    nowy_numer NUMBER;
+    nowy_departament departments.department_name%TYPE := 'EDUCATION';
+    nowe_location_id NUMBER := 3000;
+BEGIN
+    SELECT MAX(department_id) INTO numer_max FROM departments;
+    
+    nowy_numer := numer_max + 10;
+    
+    INSERT INTO departments(department_id, department_name, location_id)
+    VALUES (nowy_numer, nowy_departament, nowe_location_id);
+END;
+
+
+CREATE TABLE nowa(value VARCHAR2(20));
+
+DECLARE
+    i INTEGER := 1;
+BEGIN
+    WHILE i <= 10 LOOP
+        IF i != 4 AND i != 6 THEN
+            INSERT INTO nowa (value) VALUES (TO_CHAR(i));
+        END IF;
+        i := i + 1;
+    END LOOP;
+END;
+
+
+DECLARE
+    l_country countries%ROWTYPE;
+BEGIN
+    SELECT * INTO l_country FROM countries WHERE country_id = 'CA';
+    dbms_output.put_line('Nazwa: ' || l_country.country_name);
+    dbms_output.put_line('ID regionu: ' || l_country.region_id);
+END;
+
+DECLARE
+    TYPE departments_index_type IS TABLE OF departments.department_name%TYPE INDEX BY PLS_INTEGER;
+    departments_table departments_index_type;
+BEGIN
+    FOR dept IN (SELECT * FROM departments) LOOP
+        departments_table(dept.department_id) := dept.department_name;
+    END LOOP;
+    
+    FOR i IN 10 .. 100 LOOP
+        IF departments_table.EXISTS(i)THEN
+            dbms_output.put_line('Numer departamentu :' || i);
+            dbms_output.put_line('Nazwa departamentu: ' || departments_table(i))
+        END IF;
+    END LOOP;
+END;
+
+
+DECLARE
+    TYPE departments_index_type IS TABLE OF departments%ROWTYPE INDEX BY PLS_INTEGER;
+    departments_table departments_index_type;
+BEGIN
+    FOR dept IN (SELECT * FROM departments) LOOP
+        departments_table(dept.department_id) := dept;
+    END LOOP;
+    
+    FOR i IN 10 .. 100 LOOP
+        IF departments_table.EXISTS(i)THEN
+            dbms_output.put_line('Numer departamentu :' || i);
+            dbms_output.put_line('ID departamentu :' || departments_table(i).department_id);
+            dbms_output.put_line('Nazwa departamentu :' || departments_table(i).department_name);
+            dbms_output.put_line('ID Menadżera :' || departments_table(i).manager_id);
+            dbms_output.put_line('ID Lokalizacji :' || departments_table(i).location_id);
+        END IF;
+    END LOOP;
+END;
+
+
+DECLARE
+    CURSOR wynagrodzenie_cur IS
+        SELECT e.last_name, e.salary FROM employees e WHERE e.department_id = 50;
+        
+    v_last_name employees.last_name%TYPE;
+    v_salary employees.salary%TYPE;
+BEGIN
+    OPEN wynagrodzenie_cur;
+    LOOP
+        FETCH wynagrodzenie_cur INTO v_last_name, v_salary;
+        EXIT WHEN wynagrodzenie_cur%NOTFOUND;
+        
+        IF v_salary > 3100 THEN
+            dbms_output.put_line(v_last_name || ' - nie dawać podwyżki');
+        ELSE
+            dbms_output.put_line(v_last_name || ' - dać podwyżkę');
+        END IF;
+    END LOOP;
+    CLOSE wynagrodzenie_cur;
+END;
+        
